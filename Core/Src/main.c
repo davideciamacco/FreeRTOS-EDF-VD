@@ -240,6 +240,7 @@ void vTask1(void *pvParameters)
 	{
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 		vTaskDelay(1000);
+    printf("Task 1\n");
 	}
 
 }
@@ -249,6 +250,7 @@ void vTask2(void *pvParameters)
 	for(;;)
 	{
 		vTaskDelay(1000);
+    printf("Task 2\n");
 	}
 }
 
