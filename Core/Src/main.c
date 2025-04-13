@@ -18,6 +18,20 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+/*
+ *
+ * stdio is included to add printf
+ * To see print on the screen:
+ * 	1. Window > Show View > SWV > SWV ITM Data Console
+ *  2. Open setting of SWV ITM Data Console
+ *  3. Enable port 0 (ITM Stimulus Port 0) (right box on the far right)
+ *  4. Press OK
+ *  5. Click on the red circle button (SWV ITM Data Console window) to start the trace
+ *  6. Run the debug
+ *
+*/
+#include <stdio.h>
+
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
