@@ -56,6 +56,9 @@ static void MX_GPIO_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+void vTask1(void *pvParameters);
+void vTask2(void *pvParameters);
+
 /* USER CODE END 0 */
 
 /**
@@ -88,6 +91,8 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
+  xTaskCreate(vTask1, "Task 1", 256, NULL, 1, NULL);
+  xTaskCreate(vTask2, "Task 2", 256, NULL, 1, NULL);
 
   /* USER CODE END 2 */
 
@@ -214,6 +219,24 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void vTask1(void *pvParameters)
+{
+	for(;;)
+	{
+		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+		vTaskDelay(1000);
+	}
+
+}
+
+void vTask2(void *pvParameters)
+{
+	for(;;)
+	{
+		vTaskDelay(1000);
+	}
+}
 
 /* USER CODE END 4 */
 
