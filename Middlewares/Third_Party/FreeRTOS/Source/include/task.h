@@ -97,6 +97,12 @@ typedef struct tskTaskControlBlock * TaskHandle_t;
  */
 typedef BaseType_t (* TaskHookFunction_t)( void * );
 
+typedef enum
+{
+    eLevel1,
+    eLevel2
+} eCriticalityLevel;
+
 /* Task states returned by eTaskGetState. */
 typedef enum
 {
