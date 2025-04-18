@@ -736,7 +736,13 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
                             const configSTACK_DEPTH_TYPE usStackDepth,
                             void * const pvParameters,
                             UBaseType_t uxPriority,
-                            TaskHandle_t * const pxCreatedTask )
+                            TaskHandle_t * const pxCreatedTask,
+                            eCriticalityLevel eTaskCriticality,
+                            TickType_t xReleaseTime,
+                            TickType_t xPeriod,
+                            TickType_t xDeadline,
+                            TickType_t xLO_WCET,
+                            TickType_t xHI_WCET )
     {
         TCB_t * pxNewTCB;
         BaseType_t xReturn;
@@ -811,6 +817,13 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
             }
             #endif /* tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE */
 
+            pxNewTCB->xPeriod = xPeriod;
+            pxNewTCB->xReleaseTime = xReleaseTime;
+            pxNewTCB->xDeadline = xDeadline;
+            pxNewTCB->xVirtualDeadline = xDeadline;
+            pxNewTCB->xLO_WCET = xLO_WCET;
+            pxNewTCB->xHI_WCET = xHI_WCET;
+            pxNewTCB->eTaskCriticality = eTaskCriticality;
             prvInitialiseNewTask( pxTaskCode, pcName, ( uint32_t ) usStackDepth, pvParameters, uxPriority, pxCreatedTask, pxNewTCB, NULL );
             prvAddNewTaskToReadyList( pxNewTCB );
             xReturn = pdPASS;
