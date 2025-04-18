@@ -269,7 +269,13 @@
                                        configTIMER_TASK_STACK_DEPTH,
                                        NULL,
                                        ( ( UBaseType_t ) configTIMER_TASK_PRIORITY ) | portPRIVILEGE_BIT,
-                                       &xTimerTaskHandle );
+                                       &xTimerTaskHandle,
+                                        eLevel0,
+                                        0,
+                                        0,
+                                        0,
+                                        0,
+                                        0 ); 
             }
             #endif /* configSUPPORT_STATIC_ALLOCATION */
         }
