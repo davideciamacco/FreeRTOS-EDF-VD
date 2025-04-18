@@ -322,6 +322,15 @@ typedef struct tskTaskControlBlock       /* The old naming convention is used to
     #if ( configUSE_POSIX_ERRNO == 1 )
         int iTaskErrno;
     #endif
+
+    eCriticalityLevel eTaskCriticality; /* The criticality level of the task */ 
+    TickType_t xReleaseTime; /* The time at which the task is released. */
+    TickType_t xPeriod; /* The period of the task in ticks. */
+    TickType_t xDeadline; /* The deadline of the task in ticks. */
+    TickType_t xVirtualDeadline; /* The virtual deadline of the task in ticks. */
+    TickType_t xLO_WCET; /* The worst-case execution time of the task at criticality level 0. */
+    TickType_t xHI_WCET; /* The worst-case execution time of the task at criticality level 1. */
+    
 } tskTCB;
 
 /* The old tskTCB name is maintained above then typedefed to the new TCB_t name
