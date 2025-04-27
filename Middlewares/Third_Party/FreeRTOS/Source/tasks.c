@@ -29,6 +29,8 @@
 /* Standard includes. */
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+
 
 /* Defining MPU_WRAPPERS_INCLUDED_FROM_API_FILE prevents task.h from redefining
  * all the API functions to use the MPU wrappers.  That should only be done when
@@ -222,7 +224,7 @@
     do {                                                                                                   \
         traceMOVED_TASK_TO_READY_STATE( pxTCB );                                                           \
         taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );                                                \
-        listINSERT_END( &( pxReadyTasksLists[ ( pxTCB )->uxPriority ] ), &( ( pxTCB )->xStateListItem ) ); \
+        listINSERT_END( &( pxReadyTasksLists[ 0 ] ), &( ( pxTCB )->xStateListItem ) ); \
         tracePOST_MOVED_TASK_TO_READY_STATE( pxTCB );                                                      \
     } while( 0 )
 /*-----------------------------------------------------------*/
@@ -383,6 +385,12 @@ PRIVILEGED_DATA static UBaseType_t uxTaskNumber = ( UBaseType_t ) 0U;
 PRIVILEGED_DATA static volatile TickType_t xNextTaskUnblockTime = ( TickType_t ) 0U; /* Initialised to portMAX_DELAY before the scheduler starts. */
 PRIVILEGED_DATA static TaskHandle_t xIdleTaskHandle = NULL;                          /**< Holds the handle of the idle task.  The idle task is created automatically when the scheduler is started. */
 
+PRIVILEGED_DATA static eEDFVDcase eAlgoCase;
+
+PRIVILEGED_DATA static float xUtilization11 = ( TickType_t ) 0U;
+PRIVILEGED_DATA static float xUtilization21 = ( TickType_t ) 0U;
+PRIVILEGED_DATA static float xUtilization22 = ( TickType_t ) 0U;
+
 /* Improve support for OpenOCD. The kernel tracks Ready tasks via priority lists.
  * For tracking the state of remote threads, OpenOCD uses uxTopUsedPriority
  * to determine the number of priority lists to read back from the remote target. */
@@ -412,6 +420,49 @@ PRIVILEGED_DATA static volatile UBaseType_t uxSchedulerSuspended = ( UBaseType_t
 /*-----------------------------------------------------------*/
 
 /* File private functions. --------------------------------*/
+
+/*
+ * This function determines the system's scheduling algorithm 
+ * case based on the computed task utilizations.
+ *
+ * It first calls vComputeUtilization() to update the utilization
+ * values, then selects the appropriate scheduling case:
+ * 
+ * - eCase1: If the sum of low-criticality utilizations (Level 1 
+ *   and Level 2 tasks in LO mode) is less than or equal to 1.0, 
+ *   indicating that the system can be scheduled normally.
+ *
+ * - eCase2: If adjusting for high-criticality mode (using Level 2 
+ *   HI-WCET) still results in a schedulable system.
+ *
+ * If neither condition is satisfied, a configASSERT is triggered,
+ * indicating that the system cannot guarantee schedulability.
+ *
+ * The selected case is printed for debugging and monitoring purposes.
+ */
+
+
+
+static void vSystemSetAlgorithmCase ( void );
+
+/*
+ *
+ * This function computes the processor utilization values needed for 
+ * mixed-criticality scheduling analysis.
+ * 
+ * It traverses the list of ready tasks and calculates:
+ * - xUtilization11: the total low-criticality utilization of Level 1 (low-criticality) tasks.
+ * - xUtilization21: the low-criticality utilization of Level 2 (high-criticality) tasks when the system is in LO mode.
+ * - xUtilization22: the high-criticality utilization of Level 2 tasks when the system is in HI mode.
+ *
+ * Each task's utilization is computed as (WCET / Period),
+ * considering either LO or HI WCET depending on its criticality level.
+ * 
+ * These utilization values are fundamental to determine system 
+ * schedulability under the EDF-VD (Earliest Deadline First with 
+ * Virtual Deadlines) policy and to perform mode switching analysis.
+ */
+static void vComputeUtilization ( void );
 
 /**
  * Utility task that simply returns pdTRUE if the task referenced by xTask is
@@ -2048,6 +2099,8 @@ void vTaskStartScheduler( void )
         }
     }
     #endif /* configUSE_TIMERS */
+
+    vSystemSetAlgorithmCase();
 
     if( xReturn == pdPASS )
     {
@@ -5560,3 +5613,60 @@ static void prvAddCurrentTaskToDelayedList( TickType_t xTicksToWait,
     #endif
 
 #endif /* if ( configINCLUDE_FREERTOS_TASK_C_ADDITIONS_H == 1 ) */
+
+void vSystemSetAlgorithmCase(void)
+{
+    vComputeUtilization();
+
+    if (xUtilization11 + xUtilization21 <= 1.0f)
+    {
+        eAlgoCase = eCase1;
+    }
+    else
+    {
+        float denominator = 1.0f - xUtilization22;
+        float fraction = xUtilization21 / denominator;
+
+        if (xUtilization11 + fraction <= 1.0f)
+        {
+            eAlgoCase = eCase2;
+        }
+        else
+        {
+            configASSERT(0);
+        }
+    }
+    printf("Algorithm case: ");
+    switch(eAlgoCase)
+    {
+        case eCase1: printf("eCase1 \n"); break;
+        case eCase2: printf("eCase2 \n"); break;
+        default: printf("Unknown case \n"); break;
+    }
+    printf("--------------------------------------------------\n");
+}
+
+
+static void vComputeUtilization ( void )
+{
+    List_t* xList = &(pxReadyTasksLists[0]);
+    ListItem_t* xFirstItem = listGET_HEAD_ENTRY( xList );
+    const ListItem_t* xLastItem = listGET_END_MARKER( xList );
+    ListItem_t* xIterator = xFirstItem;
+    TCB_t* pxTCB = NULL;
+
+    while(xIterator!=xLastItem)
+    {
+        pxTCB = listGET_LIST_ITEM_OWNER(xIterator);
+        if (pxTCB->eTaskCriticality == eLevel1)
+        {
+            xUtilization11 += (float) pxTCB->xLO_WCET / (float) pxTCB->xPeriod;
+        }
+        else if (pxTCB->eTaskCriticality == eLevel2)
+        {
+            xUtilization21 += (float) pxTCB->xLO_WCET / (float) pxTCB->xPeriod;
+            xUtilization22 += (float) pxTCB->xHI_WCET / (float) pxTCB->xPeriod;
+        }
+        xIterator = xIterator->pxNext;
+    }
+}
