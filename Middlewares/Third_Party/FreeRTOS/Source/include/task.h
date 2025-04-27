@@ -99,6 +99,12 @@ typedef BaseType_t (* TaskHookFunction_t)( void * );
 
 typedef enum
 {
+    eCase1,
+    eCase2
+} eEDFVDcase;
+
+typedef enum
+{
     eLevel0, /*Used for IDLE and Timer*/
     eLevel1,
     eLevel2
