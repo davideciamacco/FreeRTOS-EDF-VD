@@ -273,8 +273,6 @@
                                         eLevel0,
                                         0,
                                         0,
-                                        0,
-                                        0,
                                         0 ); 
             }
             #endif /* configSUPPORT_STATIC_ALLOCATION */
