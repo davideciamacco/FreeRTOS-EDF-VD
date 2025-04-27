@@ -377,9 +377,7 @@ BaseType_t xTaskCreate( TaskFunction_t pxTaskCode,
     UBaseType_t uxPriority,
     TaskHandle_t * const pxCreatedTask,
     eCriticalityLevel eTaskCriticality,
-    TickType_t xReleaseTime,
     TickType_t xPeriod,
-    TickType_t xDeadline,
     TickType_t xLO_WCET,
     TickType_t xHI_WCET );
 #endif

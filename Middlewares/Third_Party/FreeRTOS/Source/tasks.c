@@ -789,9 +789,7 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
                             UBaseType_t uxPriority,
                             TaskHandle_t * const pxCreatedTask,
                             eCriticalityLevel eTaskCriticality,
-                            TickType_t xReleaseTime,
                             TickType_t xPeriod,
-                            TickType_t xDeadline,
                             TickType_t xLO_WCET,
                             TickType_t xHI_WCET )
     {
@@ -869,9 +867,6 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
             #endif /* tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE */
 
             pxNewTCB->xPeriod = xPeriod;
-            pxNewTCB->xReleaseTime = xReleaseTime;
-            pxNewTCB->xDeadline = xDeadline;
-            pxNewTCB->xVirtualDeadline = xDeadline;
             pxNewTCB->xLO_WCET = xLO_WCET;
             pxNewTCB->xHI_WCET = xHI_WCET;
             pxNewTCB->eTaskCriticality = eTaskCriticality;
@@ -2081,9 +2076,7 @@ void vTaskStartScheduler( void )
                                eLevel0,
                                0,
                                0,
-                               0,
-                               0,
-                               0 );  
+                               0);  
     }
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
