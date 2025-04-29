@@ -223,7 +223,8 @@
 #define prvAddTaskToReadyList( pxTCB )                                                                     \
     do {                                                                                                   \
         traceMOVED_TASK_TO_READY_STATE( pxTCB );                                                           \
-        taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );                                                \
+        taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );
+        listSET_LIST_ITEM_VALUE( &( ( pxTCB )->xStateListItem ), pxTCB->xDeadline);                                                \
         listINSERT_END( &( pxReadyTasksLists[ 0 ] ), &( ( pxTCB )->xStateListItem ) ); \
         tracePOST_MOVED_TASK_TO_READY_STATE( pxTCB );                                                      \
     } while( 0 )
