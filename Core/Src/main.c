@@ -63,6 +63,10 @@
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 static void MX_GPIO_Init(void);
+void vTask1(void *pvParameters);
+void vTask2(void *pvParameters);
+void vTask3(void *pvParameters);
+void vTask4(void *pvParameters);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -113,6 +117,25 @@ int main(void)
 
   /* Start scheduler */
   //osKernelStart();
+  xTaskCreate(vTask1, "TSK1", 100, NULL, 1, NULL, eLevel1, 5, 3, 3);
+  xTaskCreate(vTask2, "TSK2", 100, NULL, 1, NULL, eLevel1, 10, 8, 8); 
+  xTaskCreate(vTask3, "TSK3", 100, NULL, 1, NULL, eLevel2, 30, 20, 30);
+  xTaskCreate(vTask4, "TSK4", 100, NULL, 1, NULL, eLevel2, 10, 5, 7); 
+/*
+Cambiare parametri xTaskcreate in:
+  TaskFunction_t pxTaskCode,
+  const char * const pcName, 
+  const configSTACK_DEPTH_TYPE usStackDepth,
+  void * const pvParameters,
+  UBaseType_t uxPriority,
+  TaskHandle_t * const pxCreatedTask,
+  TickType_t xTaskPeriod,   
+  eCriticalityLevel eCriticality, 
+  TickType_t xWCET1, 
+  TickType_t xWCET2  
+*/ 
+
+
   vTaskStartScheduler(); 
 
   /* We should never get here as control is now taken by the scheduler */
@@ -283,3 +306,39 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+
+void vTask1(void *pvParameters)
+{
+  for(;;)
+  {
+
+    printf("Task 1 is running\r\n");
+    vTaskDelay(10);
+  }
+}
+
+void vTask2(void *pvParameters)
+{
+  for(;;)
+  {
+    printf("Task 2 is running\r\n");
+    vTaskDelay(15);
+  }
+}
+void vTask3(void *pvParameters)
+{
+  for(;;)
+  {
+    printf("Task 3 is running\r\n");
+    vTaskDelay(20);
+  }
+}
+
+void vTask4(void *pvParameters)
+{
+  for(;;)
+  {
+    printf("Task 4 is running\r\n");
+    vTaskDelay(25);
+  }
+}

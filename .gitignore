@@ -1,3 +1,4 @@
 Debug/
 .vscode/
 edf-vd Debug.launch
+Core/Src/main.c

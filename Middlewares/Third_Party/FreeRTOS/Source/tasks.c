@@ -217,14 +217,14 @@
 /*-----------------------------------------------------------*/
 
 /*
- * Place the task represented by pxTCB into the appropriate ready list for
- * the task.  It is inserted at the end of the list.
+ * Place the task represented by pxTCB into the ready list.
+ * It is inserted according to its deadl.
  */
 #define prvAddTaskToReadyList( pxTCB )                                                                     \
     do {                                                                                                   \
         traceMOVED_TASK_TO_READY_STATE( pxTCB );                                                           \
-        taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );
-        listSET_LIST_ITEM_VALUE( &( ( pxTCB )->xStateListItem ), pxTCB->xDeadline);                                                \
+        taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );                                                \
+        listSET_LIST_ITEM_VALUE( &( ( pxTCB )->xStateListItem ), pxTCB->xDeadline);                        \
         listINSERT_END( &( pxReadyTasksLists[ 0 ] ), &( ( pxTCB )->xStateListItem ) ); \
         tracePOST_MOVED_TASK_TO_READY_STATE( pxTCB );                                                      \
     } while( 0 )
