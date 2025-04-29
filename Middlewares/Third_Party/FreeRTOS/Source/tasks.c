@@ -867,6 +867,8 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
             }
             #endif /* tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE */
 
+            pxNewTCB->xReleaseTime = 0;
+            pxNewTCB->xDeadline = xPeriod;
             pxNewTCB->xPeriod = xPeriod;
             pxNewTCB->xLO_WCET = xLO_WCET;
             pxNewTCB->xHI_WCET = xHI_WCET;
