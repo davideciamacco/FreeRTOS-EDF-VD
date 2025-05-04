@@ -224,7 +224,7 @@
     do {                                                                                                   \
         traceMOVED_TASK_TO_READY_STATE( pxTCB );                                                           \
         taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );                                                \
-        listSET_LIST_ITEM_VALUE( &( ( pxTCB )->xStateListItem ), pxTCB->xDeadline);                        \
+        listSET_LIST_ITEM_VALUE( &( ( pxTCB )->xStateListItem ), pxTCB->fDeadline);                        \
         listINSERT_END( &( pxReadyTasksLists[ 0 ] ), &( ( pxTCB )->xStateListItem ) ); \
         tracePOST_MOVED_TASK_TO_READY_STATE( pxTCB );                                                      \
     } while( 0 )
@@ -329,8 +329,7 @@ typedef struct tskTaskControlBlock       /* The old naming convention is used to
     eCriticalityLevel eTaskCriticality; /* The criticality level of the task */ 
     TickType_t xReleaseTime; /* The time at which the task is released. */
     TickType_t xPeriod; /* The period of the task in ticks. */
-    TickType_t xDeadline; /* The deadline of the task in ticks. */
-    TickType_t xVirtualDeadline; /* The virtual deadline of the task in ticks. */
+    float fDeadline; /* The deadline of the task in ticks. */
     TickType_t xLO_WCET; /* The worst-case execution time of the task at criticality level 0. */
     TickType_t xHI_WCET; /* The worst-case execution time of the task at criticality level 1. */
     
@@ -441,9 +440,6 @@ PRIVILEGED_DATA static volatile UBaseType_t uxSchedulerSuspended = ( UBaseType_t
  *
  * The selected case is printed for debugging and monitoring purposes.
  */
-
-
-
 static void vSystemSetAlgorithmCase ( void );
 
 /*
@@ -464,6 +460,29 @@ static void vSystemSetAlgorithmCase ( void );
  * Virtual Deadlines) policy and to perform mode switching analysis.
  */
 static void vComputeUtilization ( void );
+
+
+
+/*
+ * This function updates the deadlines of all tasks of level 2
+ * according to the EDF-VD (Earliest Deadline First with Virtual 
+ * Deadlines) scheduling policy.
+ *
+ * For high-criticality tasks (Level 2), virtual deadlines are 
+ * computed using the formula:
+ *     deadline = release_time + λ × period
+ * where:
+ *     λ (lambda) = u21 / (1 - u11)
+ *     u21: low-criticality (LO mode) utilization of high-criticality tasks
+ *     u11: low-criticality (LO mode) utilization of low-criticality tasks
+ *
+ * This transformation tightens the deadlines of high-criticality
+ * tasks in LO mode, ensuring enough time is reserved for their 
+ * execution in case of a mode switch to HI.
+ *
+ * Low-criticality tasks retain their original (true) deadlines.
+ */
+static void vUpdateDeadlines ( void );
 
 /**
  * Utility task that simply returns pdTRUE if the task referenced by xTask is
@@ -868,7 +887,7 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
             #endif /* tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE */
 
             pxNewTCB->xReleaseTime = 0;
-            pxNewTCB->xDeadline = xPeriod;
+            pxNewTCB->fDeadline = (float) xPeriod;
             pxNewTCB->xPeriod = xPeriod;
             pxNewTCB->xLO_WCET = xLO_WCET;
             pxNewTCB->xHI_WCET = xHI_WCET;
@@ -5626,6 +5645,7 @@ void vSystemSetAlgorithmCase(void)
         if (xUtilization11 + fraction <= 1.0f)
         {
             eAlgoCase = eCase2;
+            vUpdateDeadlines();
         }
         else
         {
@@ -5665,4 +5685,38 @@ static void vComputeUtilization ( void )
         }
         xIterator = xIterator->pxNext;
     }
+}
+
+static void vUpdateDeadlines( void ){
+    List_t* xList = &(pxReadyTasksLists[0]);
+    ListItem_t* xFirstItem = listGET_HEAD_ENTRY( xList );
+    const ListItem_t* xLastItem = listGET_END_MARKER( xList );
+    ListItem_t* xIterator = xFirstItem;
+    TCB_t* pxTCB = NULL;
+    float fLambda = xUtilization21 / (1.0f - xUtilization11);
+
+    while(xIterator!=xLastItem)
+    {
+        pxTCB = listGET_LIST_ITEM_OWNER(xIterator);
+        if (pxTCB->eTaskCriticality == eLevel2)
+        {
+            pxTCB->fDeadline = pxTCB->xReleaseTime + fLambda * pxTCB->xPeriod;
+        }
+        xIterator = xIterator->pxNext;
+    }
+
+
+
+    //debug print to check the deadlines
+    xIterator = xFirstItem;
+    while(xIterator!=xLastItem)
+    {
+        pxTCB = listGET_LIST_ITEM_OWNER(xIterator);
+        if (pxTCB->eTaskCriticality == eLevel2)
+        {
+            printf("Task %s deadline: %f (period %ld)\n", pxTCB->pcTaskName, pxTCB->fDeadline, pxTCB->xPeriod);
+        }
+        xIterator = xIterator->pxNext;
+    }
+    printf("--------------------------------------------------\n");
 }
