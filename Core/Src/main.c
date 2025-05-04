@@ -32,6 +32,7 @@
 */
 #include <stdio.h>
 
+extern TickType_t xTaskGetPeriod(TaskHandle_t xTask);
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -309,36 +310,44 @@ void assert_failed(uint8_t *file, uint32_t line)
 
 void vTask1(void *pvParameters)
 {
+  TaskHandle_t xTaskHandle = xTaskGetCurrentTaskHandle();
+  TickType_t xDelay = xTaskGetPeriod(xTaskHandle);
   for(;;)
   {
 
     printf("Task 1 is running\r\n");
-    vTaskDelay(10);
+    vTaskDelay(xDelay);
   }
 }
 
 void vTask2(void *pvParameters)
 {
+  TaskHandle_t xTaskHandle = xTaskGetCurrentTaskHandle();
+  TickType_t xDelay = xTaskGetPeriod(xTaskHandle);
   for(;;)
   {
     printf("Task 2 is running\r\n");
-    vTaskDelay(15);
+    vTaskDelay(xDelay);
   }
 }
 void vTask3(void *pvParameters)
 {
+  TaskHandle_t xTaskHandle = xTaskGetCurrentTaskHandle();
+  TickType_t xDelay = xTaskGetPeriod(xTaskHandle);
   for(;;)
   {
     printf("Task 3 is running\r\n");
-    vTaskDelay(20);
+    vTaskDelay(xDelay);
   }
 }
 
 void vTask4(void *pvParameters)
 {
+  TaskHandle_t xTaskHandle = xTaskGetCurrentTaskHandle();
+  TickType_t xDelay = xTaskGetPeriod(xTaskHandle);
   for(;;)
   {
     printf("Task 4 is running\r\n");
-    vTaskDelay(25);
+    vTaskDelay(xDelay);
   }
 }

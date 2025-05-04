@@ -5645,7 +5645,7 @@ void vSystemSetAlgorithmCase(void)
         if (xUtilization11 + fraction <= 1.0f)
         {
             eAlgoCase = eCase2;
-            vUpdateDeadlines();
+            //vUpdateDeadlines();
         }
         else
         {
@@ -5719,4 +5719,9 @@ static void vUpdateDeadlines( void ){
         xIterator = xIterator->pxNext;
     }
     printf("--------------------------------------------------\n");
+}
+
+TickType_t xTaskGetPeriod(TaskHandle_t xTask)
+{
+    return ((TCB_t *)xTask)->xPeriod;
 }
