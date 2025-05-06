@@ -225,7 +225,7 @@
         traceMOVED_TASK_TO_READY_STATE( pxTCB );                                                           \
         taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );                                                \
         listSET_LIST_ITEM_VALUE( &( ( pxTCB )->xStateListItem ), pxTCB->fDeadline);                        \
-        listINSERT_END( &( pxReadyTasksLists[ 0 ] ), &( ( pxTCB )->xStateListItem ) ); \
+        vListInsert( &( pxReadyTasksLists[ 0 ] ), &( ( pxTCB )->xStateListItem ) ); \
         tracePOST_MOVED_TASK_TO_READY_STATE( pxTCB );                                                      \
     } while( 0 )
 /*-----------------------------------------------------------*/
@@ -390,6 +390,7 @@ PRIVILEGED_DATA static eEDFVDcase eAlgoCase;
 PRIVILEGED_DATA static float xUtilization11 = ( TickType_t ) 0U;
 PRIVILEGED_DATA static float xUtilization21 = ( TickType_t ) 0U;
 PRIVILEGED_DATA static float xUtilization22 = ( TickType_t ) 0U;
+PRIVILEGED_DATA static float fLambda = 0;
 
 /* Improve support for OpenOCD. The kernel tracks Ready tasks via priority lists.
  * For tracking the state of remote threads, OpenOCD uses uxTopUsedPriority
@@ -5693,7 +5694,7 @@ static void vUpdateDeadlines( void ){
     const ListItem_t* xLastItem = listGET_END_MARKER( xList );
     ListItem_t* xIterator = xFirstItem;
     TCB_t* pxTCB = NULL;
-    float fLambda = xUtilization21 / (1.0f - xUtilization11);
+    fLambda = xUtilization21 / (1.0f - xUtilization11);
 
     while(xIterator!=xLastItem)
     {
