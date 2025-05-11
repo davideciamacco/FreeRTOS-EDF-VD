@@ -110,6 +110,12 @@ typedef enum
     eLevel2
 } eCriticalityLevel;
 
+typedef enum
+{
+    lowCriticality,
+    highCriticality
+} eSystemCriticalityLevel;
+
 /* Task states returned by eTaskGetState. */
 typedef enum
 {

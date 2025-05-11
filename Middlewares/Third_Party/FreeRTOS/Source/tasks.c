@@ -388,6 +388,7 @@ PRIVILEGED_DATA static volatile TickType_t xNextTaskUnblockTime = ( TickType_t )
 PRIVILEGED_DATA static TaskHandle_t xIdleTaskHandle = NULL;                          /**< Holds the handle of the idle task.  The idle task is created automatically when the scheduler is started. */
 
 PRIVILEGED_DATA static eEDFVDcase eAlgoCase;
+PRIVILEGED_DATA static eSystemCriticalityLevel eSystemCriticality = lowCriticality;
 
 PRIVILEGED_DATA static float xUtilization11 = 0.0f;
 PRIVILEGED_DATA static float xUtilization21 = 0.0f;
