@@ -387,9 +387,9 @@ PRIVILEGED_DATA static TaskHandle_t xIdleTaskHandle = NULL;                     
 
 PRIVILEGED_DATA static eEDFVDcase eAlgoCase;
 
-PRIVILEGED_DATA static float xUtilization11 = ( TickType_t ) 0U;
-PRIVILEGED_DATA static float xUtilization21 = ( TickType_t ) 0U;
-PRIVILEGED_DATA static float xUtilization22 = ( TickType_t ) 0U;
+PRIVILEGED_DATA static float xUtilization11 = 0.0f;
+PRIVILEGED_DATA static float xUtilization21 = 0.0f;
+PRIVILEGED_DATA static float xUtilization22 = 0.0f;
 PRIVILEGED_DATA static float fLambda = 0;
 
 #define traceTASK_SWITCHED_IN() xTaskStartingTick = xTaskGetTickCount();
