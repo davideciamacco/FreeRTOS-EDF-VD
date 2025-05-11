@@ -224,6 +224,8 @@
     do {                                                                                                   \
         traceMOVED_TASK_TO_READY_STATE( pxTCB );                                                           \
         taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );                                                \
+        pxTCB->xReleaseTime = xTaskGetTickCount();                                                         \
+        vTaskChangeCurrentTCBDeadline(pxTCB);                                                              \
         listSET_LIST_ITEM_VALUE( &( ( pxTCB )->xStateListItem ), pxTCB->fDeadline);                        \
         vListInsert( &( pxReadyTasksLists[ 0 ] ), &( ( pxTCB )->xStateListItem ) ); \
         tracePOST_MOVED_TASK_TO_READY_STATE( pxTCB );                                                      \
@@ -487,6 +489,9 @@ static void vComputeUtilization ( void );
  * Low-criticality tasks retain their original (true) deadlines.
  */
 static void vUpdateDeadlines ( void );
+
+
+static void vTaskChangeCurrentTCBDeadline( TCB_t * pxTCB );
 
 /**
  * Utility task that simply returns pdTRUE if the task referenced by xTask is
@@ -5730,4 +5735,16 @@ static void vUpdateDeadlines( void ){
 TickType_t xTaskGetPeriod(TaskHandle_t xTask)
 {
     return ((TCB_t *)xTask)->xPeriod;
+}
+
+void vTaskChangeCurrentTCBDeadline( TCB_t * pxTCB)
+{
+    if (eAlgoCase == eCase2 && pxTCB->eTaskCriticality == eLevel2)
+    {
+        pxTCB->fDeadline = pxTCB->xReleaseTime + pxTCB->xPeriod * fLambda;
+    }
+    else
+    {
+        pxTCB->fDeadline = pxTCB->xReleaseTime + pxTCB->xPeriod;
+    }
 }
