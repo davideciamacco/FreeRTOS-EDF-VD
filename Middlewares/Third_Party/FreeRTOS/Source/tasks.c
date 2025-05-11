@@ -392,7 +392,7 @@ PRIVILEGED_DATA static eEDFVDcase eAlgoCase;
 PRIVILEGED_DATA static float xUtilization11 = 0.0f;
 PRIVILEGED_DATA static float xUtilization21 = 0.0f;
 PRIVILEGED_DATA static float xUtilization22 = 0.0f;
-PRIVILEGED_DATA static float fLambda = 0;
+PRIVILEGED_DATA static float fLambda = 0.0f;
 
 #define traceTASK_SWITCHED_IN() xTaskStartingTick = xTaskGetTickCount();
 TickType_t xTaskStartingTick = 0; /* The tick at which the task was started. */
@@ -1405,7 +1405,13 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
     {
         BaseType_t xAlreadyYielded = pdFALSE;
         TickType_t xTaskExecutionTime = xTaskGetTickCount() - xTaskStartingTick;
-        TickType_t xTicksToDelay = pxCurrentTCB->xPeriod - xTaskExecutionTime;
+        TickType_t xTicksToDelay;
+        if (eAlgoCase == eCase2 && pxCurrentTCB->eTaskCriticality == eLevel2){
+            xTicksToDelay = pxCurrentTCB->xPeriod * fLambda - xTaskExecutionTime;
+        }
+        else{
+            xTicksToDelay = pxCurrentTCB->xPeriod - xTaskExecutionTime;
+        }
 
         /* A delay time of zero just forces a reschedule. */
         if( xTicksToDelay > ( TickType_t ) 0U )
@@ -5644,7 +5650,7 @@ void vSystemSetAlgorithmCase(void)
 {
     vComputeUtilization();
 
-    if (xUtilization11 + xUtilization21 <= 1.0f)
+    if (xUtilization11 + xUtilization22 <= 1.0f)
     {
         eAlgoCase = eCase1;
     }
@@ -5656,7 +5662,7 @@ void vSystemSetAlgorithmCase(void)
         if (xUtilization11 + fraction <= 1.0f)
         {
             eAlgoCase = eCase2;
-            //vUpdateDeadlines();
+            vUpdateDeadlines();
         }
         else
         {
