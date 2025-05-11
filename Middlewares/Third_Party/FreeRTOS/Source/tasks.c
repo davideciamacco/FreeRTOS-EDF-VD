@@ -392,6 +392,9 @@ PRIVILEGED_DATA static float xUtilization21 = ( TickType_t ) 0U;
 PRIVILEGED_DATA static float xUtilization22 = ( TickType_t ) 0U;
 PRIVILEGED_DATA static float fLambda = 0;
 
+#define traceTASK_SWITCHED_IN() xTaskStartingTick = xTaskGetTickCount();
+TickType_t xTaskStartingTick = 0; /* The tick at which the task was started. */
+
 /* Improve support for OpenOCD. The kernel tracks Ready tasks via priority lists.
  * For tracking the state of remote threads, OpenOCD uses uxTopUsedPriority
  * to determine the number of priority lists to read back from the remote target. */
@@ -1393,9 +1396,11 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
 
 #if ( INCLUDE_vTaskDelay == 1 )
 
-    void vTaskDelay( const TickType_t xTicksToDelay )
+    void vTaskDelay()
     {
         BaseType_t xAlreadyYielded = pdFALSE;
+        TickType_t xTaskExecutionTime = xTaskGetTickCount() - xTaskStartingTick;
+        TickType_t xTicksToDelay = pxCurrentTCB->xPeriod - xTaskExecutionTime;
 
         /* A delay time of zero just forces a reschedule. */
         if( xTicksToDelay > ( TickType_t ) 0U )

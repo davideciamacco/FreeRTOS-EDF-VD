@@ -310,44 +310,36 @@ void assert_failed(uint8_t *file, uint32_t line)
 
 void vTask1(void *pvParameters)
 {
-  TaskHandle_t xTaskHandle = xTaskGetCurrentTaskHandle();
-  TickType_t xDelay = xTaskGetPeriod(xTaskHandle);
   for(;;)
   {
 
     printf("Task 1 is running\r\n");
-    vTaskDelay(xDelay);
+    vTaskDelay();
   }
 }
 
 void vTask2(void *pvParameters)
 {
-  TaskHandle_t xTaskHandle = xTaskGetCurrentTaskHandle();
-  TickType_t xDelay = xTaskGetPeriod(xTaskHandle);
   for(;;)
   {
     printf("Task 2 is running\r\n");
-    vTaskDelay(xDelay);
+    vTaskDelay();
   }
 }
 void vTask3(void *pvParameters)
 {
-  TaskHandle_t xTaskHandle = xTaskGetCurrentTaskHandle();
-  TickType_t xDelay = xTaskGetPeriod(xTaskHandle);
   for(;;)
   {
     printf("Task 3 is running\r\n");
-    vTaskDelay(xDelay);
+    vTaskDelay();
   }
 }
 
 void vTask4(void *pvParameters)
 {
-  TaskHandle_t xTaskHandle = xTaskGetCurrentTaskHandle();
-  TickType_t xDelay = xTaskGetPeriod(xTaskHandle);
   for(;;)
   {
     printf("Task 4 is running\r\n");
-    vTaskDelay(xDelay);
+    vTaskDelay();
   }
 }

@@ -428,13 +428,6 @@
     #define traceEND()
 #endif
 
-#ifndef traceTASK_SWITCHED_IN
-
-/* Called after a task has been selected to run.  pxCurrentTCB holds a pointer
- * to the task control block of the selected task. */
-    #define traceTASK_SWITCHED_IN()
-#endif
-
 #ifndef traceINCREASE_TICK_COUNT
 
 /* Called before stepping the tick count after waking from tickless idle
