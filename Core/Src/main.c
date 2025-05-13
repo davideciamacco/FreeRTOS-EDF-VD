@@ -118,10 +118,10 @@ int main(void)
 
   /* Start scheduler */
   //osKernelStart();
-  xTaskCreate(vTask1, "TSK1", 100, NULL, 1, NULL, eLevel1, 10, 5, 5);
-  //xTaskCreate(vTask2, "TSK2", 100, NULL, 1, NULL, eLevel1, 10, 8, 8);
-  xTaskCreate(vTask3, "TSK3", 100, NULL, 1, NULL, eLevel2, 10, 2, 6);
-  //xTaskCreate(vTask4, "TSK4", 100, NULL, 1, NULL, eLevel2, 10, 5, 7);
+  //xTaskCreate(vTask1, "TSK1", 100, NULL, 1, NULL, eLevel1, 10, 5, 5);
+  xTaskCreate(vTask2, "TSK2", 100, NULL, 1, NULL, eLevel1, 10, 2, 2);
+  //xTaskCreate(vTask3, "TSK3", 100, NULL, 1, NULL, eLevel2, 10, 2, 6);
+  xTaskCreate(vTask4, "TSK4", 100, NULL, 1, NULL, eLevel2, 10, 6, 7);
 /*
 Cambiare parametri xTaskcreate in:
   TaskFunction_t pxTaskCode,
@@ -310,33 +310,31 @@ void assert_failed(uint8_t *file, uint32_t line)
 
 void vTask1(void *pvParameters)
 {
-	int k= 15;
   for(;;)
   {
 
     printf("Task 1 is running\r\n");
-    for (int i = 0; i<k*1500; i++){}
-        k++;
     vTaskDelay();
   }
 }
 
 void vTask2(void *pvParameters)
 {
+	int k=5;
   for(;;)
   {
+
     printf("Task 2 is running\r\n");
+    for(int i = 0; i<k*1000; i++){}
+    k++;
     vTaskDelay();
   }
 }
 void vTask3(void *pvParameters)
 {
-	int k = 0;
   for(;;)
   {
     printf("Task 3 is running\r\n");
-    for (int i = 0; i<k*1000; i++){}
-    k++;
     vTaskDelay();
   }
 }
