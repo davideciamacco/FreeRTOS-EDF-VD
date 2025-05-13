@@ -397,7 +397,6 @@ PRIVILEGED_DATA static float fLambda = 0.0f;
 
 #define traceTASK_SWITCHED_IN() vUpdateTaskStartingTick();
 
-#define traceTASK_SWITCHED_OUT() vTaskCheckEDFVD();
 #define traceTASK_SWITCHED_OUT() (pxCurrentTCB->eTaskCriticality != eLevel0 ? vTaskCheckEDFVD() : (void)0)
 
 TickType_t xTaskStartingTick = 0; /* The tick at which the task was started. */
@@ -1423,6 +1422,8 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
         else{
             xTicksToDelay = pxCurrentTCB->xPeriod - xTaskExecutionTime;
         }
+
+        //printf("Now is %ld, task %s will delay unitil %ld\n", xTaskGetTickCount(), pxCurrentTCB->pcTaskName, xTicksToDelay);
 
         /* A delay time of zero just forces a reschedule. */
         if( xTicksToDelay > ( TickType_t ) 0U )
@@ -5793,6 +5794,9 @@ static void vTaskCheckEDFVD( void ){
         }
         else if(pxCurrentTCB->eTaskCriticality == eLevel1){
             vTaskDelete(pxCurrentTCB);
+            //taskSELECT_HIGHEST_PRIORITY_TASK();
+            //portYIELD_WITHIN_API();
+        	//( void ) uxListRemove(&( pxCurrentTCB->xStateListItem ));
         }
         
         //rimuovere i task di L1 e reset deadline dei task rimasti
@@ -5823,17 +5827,19 @@ static void vTaskCheckEDFVD( void ){
             xIterator = xIterator->pxNext;
         }
     }
-    if(xEndOfTask - xTaskStartingTick > pxCurrentTCB->fDeadline){
+    if(xEndOfTask - xTaskStartingTick > pxCurrentTCB->xPeriod){
         printf("TIMING ERROR!\n");
         configASSERT(0);
     }
 }
 
 static void vUpdateTaskStartingTick( void ){
-    printf("il task entrante e': %s\n", pxCurrentTCB->pcTaskName);
+    //printf("il task entrante e': %s\n", pxCurrentTCB->pcTaskName);
     xTaskStartingTick = xTaskGetTickCount();
     if(eSystemCriticality == highCriticality && pxCurrentTCB->eTaskCriticality == eLevel1 ){
-        //vTaskDelete(pxCurrentTCB);
+        vTaskDelete(pxCurrentTCB);
+        //portYIELD_WITHIN_API();
+        //taskSELECT_HIGHEST_PRIORITY_TASK();
         //qui bisogna far qualcosa per aggiornare il currentTCB
     }
 }
