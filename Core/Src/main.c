@@ -328,9 +328,12 @@ void vTask2(void *pvParameters)
 }
 void vTask3(void *pvParameters)
 {
+	int k = 0;
   for(;;)
   {
     printf("Task 3 is running\r\n");
+    for (int i = 0; i<k*1000; i++){}
+    k++;
     vTaskDelay();
   }
 }
