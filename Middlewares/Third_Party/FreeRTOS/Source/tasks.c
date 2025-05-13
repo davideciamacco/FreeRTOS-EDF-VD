@@ -395,7 +395,10 @@ PRIVILEGED_DATA static float xUtilization21 = 0.0f;
 PRIVILEGED_DATA static float xUtilization22 = 0.0f;
 PRIVILEGED_DATA static float fLambda = 0.0f;
 
-#define traceTASK_SWITCHED_IN() xTaskStartingTick = xTaskGetTickCount();
+#define traceTASK_SWITCHED_IN() vUpdateTaskStartingTick();
+
+#define traceTASK_SWITCHED_OUT() (pxCurrentTCB->eTaskCriticality != eLevel0 ? vTaskCheckEDFVD() : (void)0)
+
 TickType_t xTaskStartingTick = 0; /* The tick at which the task was started. */
 
 /* Improve support for OpenOCD. The kernel tracks Ready tasks via priority lists.
@@ -493,6 +496,12 @@ static void vUpdateDeadlines ( void );
 
 
 static void vTaskChangeCurrentTCBDeadline( TCB_t * pxTCB );
+
+static void vTaskCheckEDFVD( void );
+
+static void vUpdateTaskStartingTick( void );
+
+
 
 /**
  * Utility task that simply returns pdTRUE if the task referenced by xTask is
@@ -1407,12 +1416,14 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
         BaseType_t xAlreadyYielded = pdFALSE;
         TickType_t xTaskExecutionTime = xTaskGetTickCount() - xTaskStartingTick;
         TickType_t xTicksToDelay;
-        if (eAlgoCase == eCase2 && pxCurrentTCB->eTaskCriticality == eLevel2){
+        if (eAlgoCase == eCase2 && pxCurrentTCB->eTaskCriticality == eLevel2 && eSystemCriticality == lowCriticality){
             xTicksToDelay = pxCurrentTCB->xPeriod * fLambda - xTaskExecutionTime;
         }
         else{
             xTicksToDelay = pxCurrentTCB->xPeriod - xTaskExecutionTime;
         }
+
+        //printf("Now is %ld, task %s will delay unitil %ld\n", xTaskGetTickCount(), pxCurrentTCB->pcTaskName, xTicksToDelay);
 
         /* A delay time of zero just forces a reschedule. */
         if( xTicksToDelay > ( TickType_t ) 0U )
@@ -5746,12 +5757,89 @@ TickType_t xTaskGetPeriod(TaskHandle_t xTask)
 
 void vTaskChangeCurrentTCBDeadline( TCB_t * pxTCB)
 {
-    if (eAlgoCase == eCase2 && pxTCB->eTaskCriticality == eLevel2)
+    if (eAlgoCase == eCase2 && pxTCB->eTaskCriticality == eLevel2 && eSystemCriticality == lowCriticality)
     {
         pxTCB->fDeadline = pxTCB->xReleaseTime + pxTCB->xPeriod * fLambda;
     }
     else
     {
         pxTCB->fDeadline = pxTCB->xReleaseTime + pxTCB->xPeriod;
+    }
+}
+
+static void vTaskCheckEDFVD( void ){
+    List_t* xList;
+    ListItem_t* xFirstItem;
+    const ListItem_t* xLastItem;
+    ListItem_t* xIterator;
+    TCB_t* pxTCB;
+
+    TickType_t xEndOfTask = xTaskGetTickCount();
+    if (eSystemCriticality != highCriticality && xEndOfTask - xTaskStartingTick > pxCurrentTCB->xLO_WCET){
+        printf("Sforato il LOW_WCET: aumento criticita' sistema\n");
+        eSystemCriticality = highCriticality;
+
+        //sistemare il task corrente:
+        if (pxCurrentTCB->eTaskCriticality == eLevel2){
+            //rimuovi il task
+            ( void ) uxListRemove(&( pxCurrentTCB->xStateListItem ));
+
+            //aggiungi il task
+            traceMOVED_TASK_TO_READY_STATE( pxCurrentTCB );
+            taskRECORD_READY_PRIORITY( ( pxCurrentTCB )->uxPriority );
+            pxCurrentTCB->fDeadline = pxCurrentTCB->xReleaseTime + pxCurrentTCB->xPeriod;
+            listSET_LIST_ITEM_VALUE( &( ( pxCurrentTCB )->xStateListItem ), pxCurrentTCB->fDeadline);
+            vListInsert( &( pxReadyTasksLists[ 0 ] ), &( ( pxCurrentTCB )->xStateListItem ) );
+            tracePOST_MOVED_TASK_TO_READY_STATE( pxCurrentTCB );
+        }
+        else if(pxCurrentTCB->eTaskCriticality == eLevel1){
+            vTaskDelete(pxCurrentTCB);
+            //taskSELECT_HIGHEST_PRIORITY_TASK();
+            //portYIELD_WITHIN_API();
+        	//( void ) uxListRemove(&( pxCurrentTCB->xStateListItem ));
+        }
+        
+        //rimuovere i task di L1 e reset deadline dei task rimasti
+        //prima nella ready list
+        xList = &(pxReadyTasksLists[0]);
+        xFirstItem = listGET_HEAD_ENTRY( xList );
+        xLastItem = listGET_END_MARKER( xList );
+        xIterator = xFirstItem;
+        pxTCB = NULL;
+
+        while(xIterator!=xLastItem)
+        {
+            pxTCB = listGET_LIST_ITEM_OWNER(xIterator);
+            if (pxTCB->eTaskCriticality == eLevel2 && pxTCB->fDeadline != pxTCB->xReleaseTime + pxTCB->xPeriod)
+            {
+                ( void ) uxListRemove(&( pxTCB->xStateListItem ));
+                //aggiungi il task
+                traceMOVED_TASK_TO_READY_STATE( pxTCB );
+                taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );
+                pxTCB->fDeadline = pxTCB->xReleaseTime + pxTCB->xPeriod;
+                listSET_LIST_ITEM_VALUE( &( ( pxTCB )->xStateListItem ), pxTCB->fDeadline);
+                vListInsert( &( pxReadyTasksLists[ 0 ] ), &( ( pxTCB )->xStateListItem ) );
+                tracePOST_MOVED_TASK_TO_READY_STATE( pxTCB );
+            }
+            else if(pxTCB->eTaskCriticality == eLevel1){
+                vTaskDelete(pxTCB);
+            }
+            xIterator = xIterator->pxNext;
+        }
+    }
+    if(xEndOfTask - xTaskStartingTick > pxCurrentTCB->xPeriod){
+        printf("TIMING ERROR!\n");
+        configASSERT(0);
+    }
+}
+
+static void vUpdateTaskStartingTick( void ){
+    //printf("il task entrante e': %s\n", pxCurrentTCB->pcTaskName);
+    xTaskStartingTick = xTaskGetTickCount();
+    if(eSystemCriticality == highCriticality && pxCurrentTCB->eTaskCriticality == eLevel1 ){
+        vTaskDelete(pxCurrentTCB);
+        //portYIELD_WITHIN_API();
+        //taskSELECT_HIGHEST_PRIORITY_TASK();
+        //qui bisogna far qualcosa per aggiornare il currentTCB
     }
 }

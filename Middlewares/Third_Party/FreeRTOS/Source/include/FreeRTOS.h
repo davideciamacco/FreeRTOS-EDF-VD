@@ -445,12 +445,6 @@
     #define traceLOW_POWER_IDLE_END()
 #endif
 
-#ifndef traceTASK_SWITCHED_OUT
-
-/* Called before a task has been selected to run.  pxCurrentTCB holds a pointer
- * to the task control block of the task being switched out. */
-    #define traceTASK_SWITCHED_OUT()
-#endif
 
 #ifndef traceTASK_PRIORITY_INHERIT
 

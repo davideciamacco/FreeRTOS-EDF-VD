@@ -310,10 +310,13 @@ void assert_failed(uint8_t *file, uint32_t line)
 
 void vTask1(void *pvParameters)
 {
+	int k= 15;
   for(;;)
   {
 
     printf("Task 1 is running\r\n");
+    for (int i = 0; i<k*1500; i++){}
+        k++;
     vTaskDelay();
   }
 }
@@ -328,9 +331,12 @@ void vTask2(void *pvParameters)
 }
 void vTask3(void *pvParameters)
 {
+	int k = 0;
   for(;;)
   {
     printf("Task 3 is running\r\n");
+    for (int i = 0; i<k*1000; i++){}
+    k++;
     vTaskDelay();
   }
 }
