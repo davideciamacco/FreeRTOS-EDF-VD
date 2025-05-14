@@ -5776,15 +5776,12 @@ static void vTaskCheckEDFVD( void ){
 
     TickType_t xEndOfTask = xTaskGetTickCount();
     if (eSystemCriticality != highCriticality && xEndOfTask - xTaskStartingTick > pxCurrentTCB->xLO_WCET){
-        printf("Sforato il LOW_WCET: aumento criticita' sistema\n");
+        printf("Task '%s' has exceeded its low WCET: system criticality is now high\n", pxCurrentTCB->pcTaskName);
         eSystemCriticality = highCriticality;
 
-        //sistemare il task corrente:
         if (pxCurrentTCB->eTaskCriticality == eLevel2){
-            //rimuovi il task
             ( void ) uxListRemove(&( pxCurrentTCB->xStateListItem ));
 
-            //aggiungi il task
             traceMOVED_TASK_TO_READY_STATE( pxCurrentTCB );
             taskRECORD_READY_PRIORITY( ( pxCurrentTCB )->uxPriority );
             pxCurrentTCB->fDeadline = pxCurrentTCB->xReleaseTime + pxCurrentTCB->xPeriod;
@@ -5794,13 +5791,10 @@ static void vTaskCheckEDFVD( void ){
         }
         else if(pxCurrentTCB->eTaskCriticality == eLevel1){
             vTaskDelete(pxCurrentTCB);
-            //taskSELECT_HIGHEST_PRIORITY_TASK();
             //portYIELD_WITHIN_API();
-        	//( void ) uxListRemove(&( pxCurrentTCB->xStateListItem ));
+            //taskSELECT_HIGHEST_PRIORITY_TASK();
         }
         
-        //rimuovere i task di L1 e reset deadline dei task rimasti
-        //prima nella ready list
         xList = &(pxReadyTasksLists[0]);
         xFirstItem = listGET_HEAD_ENTRY( xList );
         xLastItem = listGET_END_MARKER( xList );
@@ -5813,7 +5807,6 @@ static void vTaskCheckEDFVD( void ){
             if (pxTCB->eTaskCriticality == eLevel2 && pxTCB->fDeadline != pxTCB->xReleaseTime + pxTCB->xPeriod)
             {
                 ( void ) uxListRemove(&( pxTCB->xStateListItem ));
-                //aggiungi il task
                 traceMOVED_TASK_TO_READY_STATE( pxTCB );
                 taskRECORD_READY_PRIORITY( ( pxTCB )->uxPriority );
                 pxTCB->fDeadline = pxTCB->xReleaseTime + pxTCB->xPeriod;
@@ -5834,12 +5827,10 @@ static void vTaskCheckEDFVD( void ){
 }
 
 static void vUpdateTaskStartingTick( void ){
-    //printf("il task entrante e': %s\n", pxCurrentTCB->pcTaskName);
     xTaskStartingTick = xTaskGetTickCount();
     if(eSystemCriticality == highCriticality && pxCurrentTCB->eTaskCriticality == eLevel1 ){
         vTaskDelete(pxCurrentTCB);
         //portYIELD_WITHIN_API();
         //taskSELECT_HIGHEST_PRIORITY_TASK();
-        //qui bisogna far qualcosa per aggiornare il currentTCB
     }
 }
