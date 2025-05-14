@@ -118,10 +118,10 @@ int main(void)
 
   /* Start scheduler */
   //osKernelStart();
-  //xTaskCreate(vTask1, "TSK1", 100, NULL, 1, NULL, eLevel1, 10, 5, 5);
-  xTaskCreate(vTask2, "TSK2", 100, NULL, 1, NULL, eLevel1, 10, 2, 2);
-  //xTaskCreate(vTask3, "TSK3", 100, NULL, 1, NULL, eLevel2, 10, 2, 6);
-  xTaskCreate(vTask4, "TSK4", 100, NULL, 1, NULL, eLevel2, 10, 6, 7);
+  xTaskCreate(vTask1, "TSK1", 100, NULL, 1, NULL, eLevel1, 7, 2, 2);
+  xTaskCreate(vTask2, "TSK2", 100, NULL, 1, NULL, eLevel1, 5, 1, 1);
+  xTaskCreate(vTask3, "TSK3", 100, NULL, 1, NULL, eLevel1, 10, 3, 3);
+  xTaskCreate(vTask4, "TSK4", 100, NULL, 1, NULL, eLevel2, 20, 2, 4);
 /*
 Cambiare parametri xTaskcreate in:
   TaskFunction_t pxTaskCode,
@@ -320,7 +320,7 @@ void vTask1(void *pvParameters)
 
 void vTask2(void *pvParameters)
 {
-	int k=5;
+	int k=0;
   for(;;)
   {
 
