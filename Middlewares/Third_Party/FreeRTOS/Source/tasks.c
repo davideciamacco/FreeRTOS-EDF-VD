@@ -5780,19 +5780,14 @@ static void vTaskCheckEDFVD( void ){
         eSystemCriticality = highCriticality;
 
         if (pxCurrentTCB->eTaskCriticality == eLevel2){
-            ( void ) uxListRemove(&( pxCurrentTCB->xStateListItem ));
 
             traceMOVED_TASK_TO_READY_STATE( pxCurrentTCB );
             taskRECORD_READY_PRIORITY( ( pxCurrentTCB )->uxPriority );
             pxCurrentTCB->fDeadline = pxCurrentTCB->xReleaseTime + pxCurrentTCB->xPeriod;
-            listSET_LIST_ITEM_VALUE( &( ( pxCurrentTCB )->xStateListItem ), pxCurrentTCB->fDeadline);
-            vListInsert( &( pxReadyTasksLists[ 0 ] ), &( ( pxCurrentTCB )->xStateListItem ) );
             tracePOST_MOVED_TASK_TO_READY_STATE( pxCurrentTCB );
         }
         else if(pxCurrentTCB->eTaskCriticality == eLevel1){
             vTaskDelete(pxCurrentTCB);
-            //portYIELD_WITHIN_API();
-            //taskSELECT_HIGHEST_PRIORITY_TASK();
         }
         
         xList = &(pxReadyTasksLists[0]);
@@ -5830,7 +5825,5 @@ static void vUpdateTaskStartingTick( void ){
     xTaskStartingTick = xTaskGetTickCount();
     if(eSystemCriticality == highCriticality && pxCurrentTCB->eTaskCriticality == eLevel1 ){
         vTaskDelete(pxCurrentTCB);
-        //portYIELD_WITHIN_API();
-        //taskSELECT_HIGHEST_PRIORITY_TASK();
     }
 }
