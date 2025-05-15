@@ -1423,7 +1423,6 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
             xTicksToDelay = pxCurrentTCB->xPeriod - xTaskExecutionTime;
         }
 
-        //printf("Now is %ld, task %s will delay unitil %ld\n", xTaskGetTickCount(), pxCurrentTCB->pcTaskName, xTicksToDelay);
 
         /* A delay time of zero just forces a reschedule. */
         if( xTicksToDelay > ( TickType_t ) 0U )
@@ -5681,14 +5680,6 @@ void vSystemSetAlgorithmCase(void)
             configASSERT(0);
         }
     }
-    printf("Algorithm case: ");
-    switch(eAlgoCase)
-    {
-        case eCase1: printf("eCase1 \n"); break;
-        case eCase2: printf("eCase2 \n"); break;
-        default: printf("Unknown case \n"); break;
-    }
-    printf("--------------------------------------------------\n");
 }
 
 
@@ -5734,20 +5725,6 @@ static void vUpdateDeadlines( void ){
         xIterator = xIterator->pxNext;
     }
 
-
-
-    //debug print to check the deadlines
-    xIterator = xFirstItem;
-    while(xIterator!=xLastItem)
-    {
-        pxTCB = listGET_LIST_ITEM_OWNER(xIterator);
-        if (pxTCB->eTaskCriticality == eLevel2)
-        {
-            printf("Task %s deadline: %f (period %ld)\n", pxTCB->pcTaskName, pxTCB->fDeadline, pxTCB->xPeriod);
-        }
-        xIterator = xIterator->pxNext;
-    }
-    printf("--------------------------------------------------\n");
 }
 
 TickType_t xTaskGetPeriod(TaskHandle_t xTask)
@@ -5776,7 +5753,6 @@ static void vTaskCheckEDFVD( void ){
 
     TickType_t xEndOfTask = xTaskGetTickCount();
     if (eSystemCriticality != highCriticality && xEndOfTask - xTaskStartingTick > pxCurrentTCB->xLO_WCET){
-        printf("Task '%s' has exceeded its low WCET: system criticality is now high\n", pxCurrentTCB->pcTaskName);
         eSystemCriticality = highCriticality;
 
         if (pxCurrentTCB->eTaskCriticality == eLevel2){
@@ -5816,7 +5792,6 @@ static void vTaskCheckEDFVD( void ){
         }
     }
     if(xEndOfTask - xTaskStartingTick > pxCurrentTCB->xPeriod){
-        printf("TIMING ERROR!\n");
         configASSERT(0);
     }
 }
